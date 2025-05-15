@@ -1,47 +1,105 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Encuesta Diaria</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f9f9f9;
+      padding: 2em;
+      max-width: 600px;
+      margin: auto;
+    }
+    h1 { text-align: center; }
+    label { font-weight: bold; margin-top: 1em; display: block; }
+    select, textarea, input[type="range"] {
+      width: 100%;
+      margin-top: 0.3em;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      padding: 0.7em 1.2em;
+      border: none;
+      border-radius: 5px;
+      font-size: 1em;
+      margin-top: 2em;
+      cursor: pointer;
+      width: 100%;
+    }
+    #mensaje {
+      margin-top: 1em;
+      text-align: center;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
+
   <h1>Encuesta Diaria</h1>
-  <form id="form">
-    <label>1. ¿Fuiste al gimnasio hoy a las 7 am?</label><br/>
+
+  <form id="formulario">
+    <label>¿Fuiste al gimnasio?</label>
     <select name="gimnasio">
-      <option>Sí</option>
-      <option>No, pero me moví en casa</option>
-      <option>No lo logré</option>
-    </select><br/>
+      <option value="Sí">Sí</option>
+      <option value="No">No</option>
+    </select>
 
-    <label>2. ¿Cómo te sentiste al despertar?</label><br/>
-    <select name="despertar">
-      <option>Energético</option>
-      <option>Normal</option>
-      <option>Cansado/a</option>
-      <option>Náuseas / malestar</option>
-    </select><br/>
+    <label>¿A qué hora despertaste?</label>
+    <input type="time" name="despertar" />
 
-    <label>3. ¿Qué tan motivado/a estuviste hoy? (1 = nada, 5 = mucho)</label><br/>
-    <input type="range" name="motivacion" min="1" max="5"><br/>
+    <label>¿Cuán motivado te sentiste hoy? (1 a 5)</label>
+    <input type="range" name="motivacion" min="1" max="5" step="1" />
 
-    <label>4. ¿Consumiste algo hoy?</label><br/>
+    <label>¿Consumiste cosas que no querías consumir?</label>
     <select name="consumo">
-      <option>No</option>
-      <option>Solo en la noche</option>
-      <option>Durante el día</option>
-      <option>Todo el día</option>
-    </select><br/>
+      <option value="Sí">Sí</option>
+      <option value="No">No</option>
+    </select>
 
-    <label>5. ¿Quieres dejar un comentario para tu yo del futuro?</label><br/>
-    <textarea name="comentario"></textarea><br/>
+    <label>Comentario o reflexión del día</label>
+    <textarea name="comentario" rows="4" placeholder="Escribe algo breve..."></textarea>
 
     <button type="submit">Enviar</button>
   </form>
 
-  <p id="mensaje"></p>
+  <div id="mensaje"></div>
 
-  <script src="script.js"></script>
+  <script>
+    const formulario = document.getElementById("formulario");
+    const mensaje = document.getElementById("mensaje");
+
+    formulario.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const data = {
+        gimnasio: formulario.gimnasio.value,
+        despertar: formulario.despertar.value,
+        motivacion: formulario.motivacion.value,
+        consumo: formulario.consumo.value,
+        comentario: formulario.comentario.value
+      };
+
+      const endpoint = "https://script.google.com/macros/s/AKfycbywOoTe0UYu-aABv_h458S6hhym-KivBXW6P-4kQaNfiud09zF71XxOYIbIyp--fV0G/exec";
+
+      try {
+        const res = await fetch(endpoint, {
+          method: "POST",
+          body: JSON.stringify(data),
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+
+        const texto = await res.text();
+        mensaje.innerText = texto === "OK" ? "✅ Datos enviados correctamente." : "❌ Ocurrió un error: " + texto;
+        formulario.reset();
+      } catch (error) {
+        mensaje.innerText = "❌ Error al enviar: " + error.message;
+      }
+    });
+  </script>
+
 </body>
 </html>
