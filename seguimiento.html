@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8" />
-<title>Seguimiento de Entrenamiento</title>
+<title>Seguimiento de Encuesta</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/d3-cloud/build/d3.layout.cloud.js"></script>
@@ -25,13 +25,12 @@
 <div id="word-cloud"></div>
 
 <script>
-// Cambia esta URL por la URL pública CSV de tu Google Sheet
-const sheetCSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRjg0UxgWLiKFgDlJ-2ClMcOsIrWxWEbdSuwt-auAUmjIZ74rSGlB5HY-bomZkXuGNNg1jonvqTQP8d/pub?gid=0&single=true&output=csv';
+const sheetCSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRjg0UxgWLiKFgDlJ-2ClMcOsIrWxWEbdSuwt-auAUmjIZ74rSGlB5HY-bomZkXuGNNg1jonvqTQP8d/pub?output=csv';
 
-// Función para parsear CSV a array de objetos
+// Función para parsear CSV en objetos JS
 async function fetchCSV(url) {
-  const response = await fetch(url);
-  const text = await response.text();
+  const res = await fetch(url);
+  const text = await res.text();
   const lines = text.trim().split('\n');
   const headers = lines[0].split(',');
   return lines.slice(1).map(line => {
@@ -42,24 +41,29 @@ async function fetchCSV(url) {
   });
 }
 
-// Filtra datos últimos 30 días
+// Filtra últimos 30 días con base en Timestamp
 function filterLast30Days(data) {
   const hoy = new Date();
-  const ms30dias = 30*24*60*60*1000;
+  const ms30 = 30 * 24 * 60 * 60 * 1000;
   return data.filter(d => {
-    const fecha = new Date(d.Fecha || d.fecha || d.date);
-    return fecha && (hoy - fecha) <= ms30dias && (hoy - fecha) >= 0;
-  }).sort((a,b) => new Date(a.Fecha) - new Date(b.Fecha));
+    const fechaStr = d.Timestamp;
+    if (!fechaStr) return false;
+    const fecha = new Date(fechaStr);
+    return fecha && (hoy - fecha) <= ms30 && (hoy - fecha) >= 0;
+  }).sort((a,b) => new Date(a.Timestamp) - new Date(b.Timestamp));
 }
 
-// Prepara datos para gráfico: motivación diaria (Pregunta 3)
+// Prepara datos para Chart.js
 function prepareChartData(data) {
-  const labels = data.map(d => d.Fecha);
+  const labels = data.map(d => {
+    const f = new Date(d.Timestamp);
+    return f.toLocaleDateString();
+  });
   const motivacion = data.map(d => Number(d['¿Qué tan motivado/a estuviste hoy?'] || 0));
-  return { labels, motivacion };
+  return {labels, motivacion};
 }
 
-// Dibuja gráfico lineal
+// Dibuja gráfico lineal de motivación
 function drawChart(labels, data) {
   const ctx = document.getElementById('lineChart').getContext('2d');
   new Chart(ctx, {
@@ -69,15 +73,14 @@ function drawChart(labels, data) {
       datasets: [{
         label: 'Motivación (1-5)',
         data,
-        fill: false,
         borderColor: 'blue',
-        tension: 0.1,
+        fill: false,
+        tension: 0.2,
         pointRadius: 4,
-        pointHoverRadius: 7,
+        pointHoverRadius: 6,
       }]
     },
     options: {
-      responsive: true,
       scales: {
         y: {
           min: 0,
@@ -89,15 +92,14 @@ function drawChart(labels, data) {
   });
 }
 
-// Nube de palabras para comentarios (Pregunta 5)
+// Nube de palabras con comentarios (limpiando palabras comunes)
 function drawWordCloud(texts) {
-  // Juntar textos, limpiar, filtrar palabras comunes cortas
   const allText = texts.join(' ').toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()"]/g,"");
-  const words = allText.split(/\s+/).filter(w => w.length > 2 && !['para','del','y','que','la','el','de','mi','tu','yo','me','se','con','sin','por','las','los','un','una','es','en','al','lo','como'].includes(w));
-
+  const stopWords = ['para','del','y','que','la','el','de','mi','tu','yo','me','se','con','sin','por','las','los','un','una','es','en','al','lo','como','a','si','te','le','los','las','su'];
+  const words = allText.split(/\s+/).filter(w => w.length > 2 && !stopWords.includes(w));
   const freqMap = {};
   words.forEach(w => freqMap[w] = (freqMap[w] || 0) + 1);
-  const wordEntries = Object.entries(freqMap).map(([text,size]) => ({text, size: size * 10}));
+  const wordEntries = Object.entries(freqMap).map(([text, size]) => ({text, size: size * 10}));
 
   const width = document.getElementById('word-cloud').clientWidth;
   const height = document.getElementById('word-cloud').clientHeight;
@@ -122,7 +124,7 @@ function drawWordCloud(texts) {
       .data(words)
       .enter().append("text")
       .style("font-size", d => d.size + "px")
-      .style("fill", () => `hsl(${Math.random() * 360}, 70%, 50%)`)
+      .style("fill", () => `hsl(${Math.random()*360},70%,50%)`)
       .attr("text-anchor", "middle")
       .attr("transform", d => `translate(${d.x},${d.y})rotate(${d.rotate})`)
       .text(d => d.text);
@@ -132,18 +134,14 @@ function drawWordCloud(texts) {
 async function main() {
   const rawData = await fetchCSV(sheetCSV);
   const data30 = filterLast30Days(rawData);
-
-  // Grafico evolución motivación
   const chartData = prepareChartData(data30);
   drawChart(chartData.labels, chartData.motivacion);
 
-  // Nube de palabras de comentarios
   const comentarios = data30.map(d => d['¿Quieres dejar un comentario para tu yo del futuro?'] || '');
   drawWordCloud(comentarios);
 }
 
 main();
-
 </script>
 
 </body>
