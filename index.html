@@ -2,35 +2,53 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Encuesta Diaria</title>
   <style>
     body {
       font-family: sans-serif;
-      background: #f9f9f9;
-      padding: 2em;
       max-width: 600px;
-      margin: auto;
-    }
-    h1 { text-align: center; }
-    label { font-weight: bold; margin-top: 1em; display: block; }
-    select, textarea, input[type="range"] {
-      width: 100%;
-      margin-top: 0.3em;
-    }
-    button {
-      background: #4CAF50;
-      color: white;
-      padding: 0.7em 1.2em;
-      border: none;
-      border-radius: 5px;
-      font-size: 1em;
-      margin-top: 2em;
-      cursor: pointer;
-      width: 100%;
-    }
-    #mensaje {
-      margin-top: 1em;
+      margin: 30px auto;
+      padding: 20px;
+      background: #f5f5f5;
       text-align: center;
+    }
+
+    h1 {
+      font-size: 2em;
+    }
+
+    label {
+      display: block;
+      margin-top: 20px;
+      font-weight: bold;
+      text-align: left;
+    }
+
+    select, input, textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      font-size: 1em;
+    }
+
+    input[type="range"] {
+      width: 100%;
+    }
+
+    button {
+      margin-top: 30px;
+      padding: 15px 30px;
+      font-size: 1.1em;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #respuesta {
+      margin-top: 20px;
       font-weight: bold;
     }
   </style>
@@ -40,64 +58,58 @@
   <h1>Encuesta Diaria</h1>
 
   <form id="formulario">
-    <label>¿Fuiste al gimnasio?</label>
-    <select name="gimnasio">
+    <label for="gimnasio">¿Fuiste al gimnasio?</label>
+    <select id="gimnasio" required>
       <option value="Sí">Sí</option>
       <option value="No">No</option>
     </select>
 
-    <label>¿A qué hora despertaste?</label>
-    <input type="time" name="despertar" />
+    <label for="despertar">¿A qué hora despertaste?</label>
+    <input type="time" id="despertar" required />
 
-    <label>¿Cuán motivado te sentiste hoy? (1 a 5)</label>
-    <input type="range" name="motivacion" min="1" max="5" step="1" />
+    <label for="motivacion">¿Cuán motivado te sentiste hoy? (1 a 5)</label>
+    <input type="range" id="motivacion" min="1" max="5" value="3" required />
 
-    <label>¿Consumiste cosas que no querías consumir?</label>
-    <select name="consumo">
+    <label for="consumo">¿Consumiste cosas que no querías consumir?</label>
+    <select id="consumo" required>
       <option value="Sí">Sí</option>
       <option value="No">No</option>
     </select>
 
-    <label>Comentario o reflexión del día</label>
-    <textarea name="comentario" rows="4" placeholder="Escribe algo breve..."></textarea>
+    <label for="comentario">Comentario o reflexión del día</label>
+    <textarea id="comentario" rows="4"></textarea>
 
     <button type="submit">Enviar</button>
+    <div id="respuesta"></div>
   </form>
 
-  <div id="mensaje"></div>
-
   <script>
-    const formulario = document.getElementById("formulario");
-    const mensaje = document.getElementById("mensaje");
-
-    formulario.addEventListener("submit", async (e) => {
+    document.getElementById("formulario").addEventListener("submit", function(e) {
       e.preventDefault();
 
-      const data = {
-        gimnasio: formulario.gimnasio.value,
-        despertar: formulario.despertar.value,
-        motivacion: formulario.motivacion.value,
-        consumo: formulario.consumo.value,
-        comentario: formulario.comentario.value
+      const datos = {
+        gimnasio: document.getElementById("gimnasio").value,
+        despertar: document.getElementById("despertar").value,
+        motivacion: document.getElementById("motivacion").value,
+        consumo: document.getElementById("consumo").value,
+        comentario: document.getElementById("comentario").value
       };
 
-      const endpoint = "https://script.google.com/macros/s/AKfycbywOoTe0UYu-aABv_h458S6hhym-KivBXW6P-4kQaNfiud09zF71XxOYIbIyp--fV0G/exec";
-
-      try {
-        const res = await fetch(endpoint, {
-          method: "POST",
-          body: JSON.stringify(data),
-          headers: {
-            "Content-Type": "application/json"
-          }
-        });
-
-        const texto = await res.text();
-        mensaje.innerText = texto === "OK" ? "✅ Datos enviados correctamente." : "❌ Ocurrió un error: " + texto;
-        formulario.reset();
-      } catch (error) {
-        mensaje.innerText = "❌ Error al enviar: " + error.message;
-      }
+      fetch("https://script.google.com/macros/s/AKfycbyBocOTwOZRapwMzyrbY1sjz_2IXL7IZCckougbsQsDiaWlR-AqypcVtlDxXBhmwI38/exec", {
+        method: "POST",
+        mode: "no-cors",  // Evita errores CORS pero no podrás ver la respuesta
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(datos)
+      })
+      .then(() => {
+        document.getElementById("respuesta").textContent = "✅ ¡Enviado exitosamente!";
+        document.getElementById("formulario").reset();
+      })
+      .catch(error => {
+        document.getElementById("respuesta").textContent = "❌ Error al enviar: " + error.message;
+      });
     });
   </script>
 
