@@ -1,61 +1,46 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
   <title>Encuesta Diaria</title>
-  <style>
-    body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: auto; }
-    h1 { font-size: 1.5rem; }
-    label, select, textarea, input[type=range] { display: block; width: 100%; margin: 10px 0; }
-    button { padding: 10px; font-size: 1rem; }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <h1>Encuesta Diaria</h1>
-  
-  <form id="encuestaForm">
-    <label>1. ¿Fuiste al gimnasio hoy a las 7 am?
-      <select name="q1" required>
-        <option value="">Selecciona una opción</option>
-        <option>Sí</option>
-        <option>No, pero me moví en casa</option>
-        <option>No lo logré</option>
-      </select>
-    </label>
-    
-    <label>2. ¿Cómo te sentiste al despertar?
-      <select name="q2" required>
-        <option value="">Selecciona una opción</option>
-        <option>Energético</option>
-        <option>Normal</option>
-        <option>Cansado/a</option>
-        <option>Náuseas / malestar</option>
-      </select>
-    </label>
-    
-    <label>3. ¿Qué tan motivado/a estuviste hoy? (1 = Nada, 5 = Mucho)
-      <input type="range" name="q3" min="1" max="5" value="3"/>
-    </label>
-    
-    <label>4. ¿Consumiste marihuana ayer o hoy?
-      <select name="q4" required>
-        <option value="">Selecciona una opción</option>
-        <option>No</option>
-        <option>Solo en la noche</option>
-        <option>Durante el día</option>
-        <option>Todo el día</option>
-      </select>
-    </label>
-    
-    <label>5. ¿Comentario para tu yo del futuro?
-      <textarea name="q5" rows="3" placeholder="Escribe aquí..."></textarea>
-    </label>
-    
+  <form id="form">
+    <label>1. ¿Fuiste al gimnasio hoy a las 7 am?</label><br/>
+    <select name="gimnasio">
+      <option>Sí</option>
+      <option>No, pero me moví en casa</option>
+      <option>No lo logré</option>
+    </select><br/>
+
+    <label>2. ¿Cómo te sentiste al despertar?</label><br/>
+    <select name="despertar">
+      <option>Energético</option>
+      <option>Normal</option>
+      <option>Cansado/a</option>
+      <option>Náuseas / malestar</option>
+    </select><br/>
+
+    <label>3. ¿Qué tan motivado/a estuviste hoy? (1 = nada, 5 = mucho)</label><br/>
+    <input type="range" name="motivacion" min="1" max="5"><br/>
+
+    <label>4. ¿Consumiste algo hoy?</label><br/>
+    <select name="consumo">
+      <option>No</option>
+      <option>Solo en la noche</option>
+      <option>Durante el día</option>
+      <option>Todo el día</option>
+    </select><br/>
+
+    <label>5. ¿Quieres dejar un comentario para tu yo del futuro?</label><br/>
+    <textarea name="comentario"></textarea><br/>
+
     <button type="submit">Enviar</button>
   </form>
 
-  <p id="estado"></p>
+  <p id="mensaje"></p>
 
   <script src="script.js"></script>
 </body>
