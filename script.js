@@ -1,32 +1,30 @@
-document.getElementById('encuestaForm').addEventListener('submit', function (e) {
+document.getElementById("form").addEventListener("submit", function(e) {
   e.preventDefault();
 
-  const form = e.target;
-  const datos = {
-    q1: form.q1.value,
-    q2: form.q2.value,
-    q3: form.q3.value,
-    q4: form.q4.value,
-    q5: form.q5.value
+  const data = new FormData(this);
+
+  const values = {
+    gimnasio: data.get("gimnasio"),
+    despertar: data.get("despertar"),
+    motivacion: data.get("motivacion"),
+    consumo: data.get("consumo"),
+    comentario: data.get("comentario"),
+    fecha: new Date().toLocaleDateString("es-CL")
   };
 
-  const url = "TU_URL_DE_SCRIPT"; // <- REEMPLAZA ESTO
-
-  document.getElementById("estado").innerText = "Enviando...";
-
-  fetch(url, {
-    method: 'POST',
-    mode: 'no-cors', // porque Google Apps Script no responde CORS
+  fetch("https://script.google.com/macros/s/AKfycbywOoTe0UYu-aABv_h458S6hhym-KivBXW6P-4kQaNfiud09zF71XxOYIbIyp--fV0G/exec", {
+    method: "POST",
+    body: JSON.stringify(values),
     headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(datos)
+      "Content-Type": "application/json"
+    }
   })
-  .then(() => {
-    form.reset();
-    document.getElementById("estado").innerText = "¡Gracias! Tu respuesta fue registrada.";
+  .then(res => res.text())
+  .then(txt => {
+    document.getElementById("mensaje").textContent = "¡Gracias! Tus respuestas fueron guardadas.";
+    document.getElementById("form").reset();
   })
-  .catch(() => {
-    document.getElementById("estado").innerText = "Error al enviar. Intenta más tarde.";
+  .catch(err => {
+    document.getElementById("mensaje").textContent = "Error al enviar la encuesta.";
   });
 });
